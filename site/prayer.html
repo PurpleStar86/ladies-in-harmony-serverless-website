@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Prayer Request | Ladies in Harmony</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <div class="site-wrapper">
+    <header class="site-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <div class="brand-mark">LH</div>
+          <div>
+            <div class="brand-text-main">Ladies in Harmony</div>
+            <div class="brand-text-sub">Prayer Group</div>
+          </div>
+        </div>
+        <button class="menu-toggle" id="menu-toggle">☰</button>
+        <nav class="nav" id="nav">
+          <a href="index.html">Home</a>
+          <a href="about.html">About</a>
+          <a href="prayer.html" class="active">Prayer Request</a>
+          <a href="events.html">Events</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="section">
+        <div class="container">
+          <div class="section-header">
+            <h1 class="section-title">Submit a Prayer Request</h1>
+            <p class="section-subtitle">
+              Your request will be kept private and shared only with our prayer leaders.
+            </p>
+          </div>
+
+          <div class="form-card">
+            <form id="prayer-form">
+              <div class="form-grid">
+                <div>
+                  <label for="name">Name (optional)</label>
+                  <input type="text" id="name" name="name" />
+                </div>
+
+                <div>
+                  <label for="email">Email (optional)</label>
+                  <input type="email" id="email" name="email" />
+                  <p class="field-help">Optional — only used if a leader needs to follow up.</p>
+                </div>
+
+                <div>
+                  <label for="request">Prayer Request</label>
+                  <textarea id="request" name="request" required></textarea>
+                  <p class="field-help">
+                    Please share as much or as little as you feel comfortable. This will not appear publicly.
+                  </p>
+                </div>
+
+                <div>
+                  <button class="btn btn-primary" type="submit">Send Prayer Request</button>
+                  <p class="field-help" style="margin-top: .6rem;">
+                    Note: This form will be connected to private delivery once the secure system is turned on.
+                  </p>
+                </div>
+              </div>
+            </form>
+            <div id="prayer-success" class="form-message success-message" hidden>
+  <h2>Your Prayer Has Been Received</h2>
+  <p>
+    Thank you for trusting Ladies in Harmony with your prayer request.
+    Our prayer team will lift your request in faith.
+  </p>
+  <p class="message-verse">
+    “Be joyful in hope, patient in affliction, faithful in prayer.”
+    <strong>— Romans 12:12</strong>
+  </p>
+</div>
+
+<div id="prayer-error" class="form-message error-message" hidden>
+  <h2>We Couldn’t Send Your Request</h2>
+  <p>
+    Please wait a moment and try again. Your prayer request has not been lost from the form.
+  </p>
+</div>
+          </div>
+
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>© <span id="year"></span> Ladies in Harmony. All rights reserved.</div>
+        <div>Website developed by Purple Stack Labs</div>
+      </div>
+    </footer>
+  </div>
+
+<script>
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  const prayerForm = document.getElementById("prayer-form");
+  const submitButton = prayerForm.querySelector('button[type="submit"]');
+  const successMessage = document.getElementById("prayer-success");
+  const errorMessage = document.getElementById("prayer-error");
+
+  prayerForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    successMessage.hidden = true;
+    errorMessage.hidden = true;
+
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const request = document.getElementById("request").value.trim();
+
+    if (!request) {
+      errorMessage.querySelector("p").textContent =
+        "Please enter your prayer request before submitting.";
+      errorMessage.hidden = false;
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Sending...";
+
+    try {
+      const response = await fetch(
+        "https://td2hdbinme.execute-api.us-east-2.amazonaws.com/prayer",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            request
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "The request could not be sent.");
+      }
+
+      prayerForm.reset();
+      successMessage.hidden = false;
+      successMessage.scrollIntoView({
+        behavior: "smooth",
+        block: "center"
+      });
+    } catch (error) {
+      console.error("Prayer form error:", error);
+
+      errorMessage.querySelector("p").textContent =
+        "Something went wrong while sending your prayer request. Please try again.";
+      errorMessage.hidden = false;
+    } finally {
+      submitButton.disabled = false;
+      submitButton.textContent = "Send Prayer Request";
+    }
+  });
+</script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
